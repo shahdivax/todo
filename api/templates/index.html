@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Space Todo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div id="scene-container"></div>
+    
+    <div id="ui-container">
+        <div id="achievements" class="glass-panel">
+            <h2>Achievements</h2>
+            <div id="completed-count">Completed Tasks: <span>0</span></div>
+            <button onclick="toggleCompletedView()" class="neon-button success">Show Completed</button>
+        </div>
+        
+        <div id="task-form" class="glass-panel">
+            <h2>Add New Task</h2>
+            <input type="text" id="task-title" placeholder="Task Title" class="neon-input">
+            <textarea id="task-description" placeholder="Description" class="neon-input"></textarea>
+            <input type="date" id="task-deadline" class="neon-input">
+            <label class="neon-checkbox">
+                <input type="checkbox" id="task-urgent">
+                Urgent
+            </label>
+            <button onclick="addTask()" class="neon-button">Add Task</button>
+        </div>
+
+        <div id="controls" class="glass-panel">
+            <button onclick="clearTasks()" class="neon-button danger">Clear All Tasks</button>
+            <button onclick="toggleAudio()" class="neon-button">Toggle Audio</button>
+        </div>
+    </div>
+
+    <div id="task-details" class="glass-panel hidden">
+        <h3 id="detail-title"></h3>
+        <p id="detail-description"></p>
+        <p id="detail-deadline"></p>
+        <button onclick="completeTask()" class="neon-button success">Complete</button>
+        <button onclick="deleteTask()" class="neon-button danger">Delete</button>
+        <button onclick="closeDetails()" class="neon-button">Close</button>
+    </div>
+
+    <div id="completed-showcase" class="glass-panel showcase hidden">
+        <h2>Completed Tasks</h2>
+        <div id="completed-list"></div>
+        <button onclick="toggleCompletedView()" class="neon-button">Close</button>
+    </div>
+
+    <audio id="ambient-sound" loop>
+        <source src="{{ url_for('static', filename='audio/ambient-space.mp3') }}" type="audio/mp3">
+    </audio>
+    <audio id="complete-sound">
+        <source src="{{ url_for('static', filename='audio/complete.mp3') }}" type="audio/mp3">
+    </audio>
+    <audio id="hover-sound">
+        <source src="{{ url_for('static', filename='audio/hover.mp3') }}" type="audio/mp3">
+    </audio>
+
+    <script src="{{ url_for('static', filename='js/three-setup.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/matter-setup.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 

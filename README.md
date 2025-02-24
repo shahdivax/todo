@@ -22,8 +22,8 @@ A futuristic 3D to-do list application that presents tasks as interactive 3D obj
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd 3d-space-todo
+git clone https://github.com/shahdivax/todo.git
+cd todo
 ```
 
 2. Create a virtual environment and activate it:
@@ -41,7 +41,7 @@ pip install -r requirements.txt
 
 1. Start the Flask development server:
 ```bash
-python app.py
+python api/app.py
 ```
 
 2. Open your web browser and navigate to:

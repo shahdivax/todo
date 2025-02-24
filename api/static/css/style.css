@@ -242,4 +242,54 @@ body {
 
 #ui-container::-webkit-scrollbar-thumb:hover {
     background: var(--neon-purple);
+}
+
+/* Add new styles for screen size warning */
+#screen-size-warning {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    color: var(--neon-blue);
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#screen-size-warning .content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 600px;
+}
+
+#screen-size-warning h2 {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px var(--neon-blue);
+}
+
+#screen-size-warning p {
+    margin: 10px 0;
+    line-height: 1.5;
+}
+
+/* Show warning on screens smaller than 1024px */
+@media screen and (max-width: 1024px) {
+    #screen-size-warning {
+        display: block;
+    }
+    
+    #scene-container,
+    #ui-container,
+    #task-details,
+    #completed-showcase {
+        display: none !important;
+    }
 } 

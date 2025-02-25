@@ -114,13 +114,72 @@ function getTaskEmissiveColor(taskData) {
     return darker.getHex();
 }
 
+// Add debounce function at the top
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Add suggestion handling functions
+async function fetchSuggestions(title) {
+    if (!title) {
+        document.getElementById('suggestions').classList.add('hidden');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/suggest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title })
+        });
+
+        const suggestions = await response.json();
+        
+        if (suggestions && suggestions.length > 0) {
+            displaySuggestions(suggestions);
+        } else {
+            document.getElementById('suggestions').classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Error fetching suggestions:', error);
+    }
+}
+
+function displaySuggestions(suggestions) {
+    const container = document.getElementById('suggestions');
+    const list = document.getElementById('suggestions-list');
+    list.innerHTML = '';
+
+    suggestions.forEach((suggestion, index) => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        item.innerHTML = `
+            <input type="checkbox" id="suggestion-${index}" class="suggestion-checkbox">
+            <label for="suggestion-${index}">${suggestion}</label>
+        `;
+        list.appendChild(item);
+    });
+
+    container.classList.remove('hidden');
+}
+
+// Modify the addTask function to include selected suggestions
 async function addTask() {
     const title = document.getElementById('task-title').value;
     const description = document.getElementById('task-description').value;
     const deadline = document.getElementById('task-deadline').value;
     const urgent = document.getElementById('task-urgent').checked;
 
-    // Add validation for both title and deadline
     if (!title || !deadline) {
         if (!title && !deadline) {
             alert('Please enter a task title and select a deadline');
@@ -132,6 +191,15 @@ async function addTask() {
         return;
     }
 
+    // Collect selected suggestions
+    const selectedSuggestions = Array.from(document.querySelectorAll('.suggestion-checkbox:checked'))
+        .map(checkbox => checkbox.nextElementSibling.textContent);
+
+    // Add selected suggestions to description if any
+    const fullDescription = selectedSuggestions.length > 0
+        ? `${description}\n\nSubtasks:\n${selectedSuggestions.map(s => `- ${s}`).join('\n')}`
+        : description;
+
     try {
         const response = await fetch('/api/tasks', {
             method: 'POST',
@@ -140,7 +208,7 @@ async function addTask() {
             },
             body: JSON.stringify({
                 title,
-                description,
+                description: fullDescription,
                 deadline,
                 urgent
             })
@@ -701,4 +769,94 @@ window.addEventListener('load', () => {
     
     // Add the new function call
     setDefaultDate();
+
+    const titleInput = document.getElementById('task-title');
+    titleInput.addEventListener('input', debounce((e) => {
+        fetchSuggestions(e.target.value);
+    }, 300));
+});
+
+// AI Task Generation Functions
+function showAIGenerator() {
+    document.getElementById('ai-task-generator').classList.remove('hidden');
+}
+
+function closeAIGenerator() {
+    document.getElementById('ai-task-generator').classList.add('hidden');
+    document.getElementById('project-description').value = '';
+    document.getElementById('ai-loading').classList.add('hidden');
+}
+
+async function generateAITasks() {
+    const description = document.getElementById('project-description').value.trim();
+    if (!description) {
+        alert('Please describe your project or work.');
+        return;
+    }
+
+    // Show loading spinner
+    document.getElementById('ai-loading').classList.remove('hidden');
+
+    try {
+        const response = await fetch('/api/generate-tasks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ description })
+        });
+
+        const tasks = await response.json();
+        
+        if (response.ok) {
+            // Add each generated task
+            for (const task of tasks) {
+                const taskResponse = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(task)
+                });
+                
+                const newTask = await taskResponse.json();
+                
+                // Create 3D object for the new task
+                const taskObject = createTaskObject(newTask);
+                scene.add(taskObject);
+                taskObjects.set(newTask.id, taskObject);
+                
+                // Create physics body for the new task
+                const taskBody = createTaskBody(newTask);
+                taskBodies.set(newTask.id, taskBody);
+            }
+
+            // Close the AI generator
+            closeAIGenerator();
+            
+            // Update the task list in the sidebar
+            updateTaskList();
+            
+            // Play success sound if enabled
+            if (audioEnabled) {
+                completeSound.play();
+            }
+        } else {
+            throw new Error(tasks.error || 'Failed to generate tasks');
+        }
+    } catch (error) {
+        console.error('Error generating tasks:', error);
+        alert('Error generating tasks: ' + error.message);
+    } finally {
+        document.getElementById('ai-loading').classList.add('hidden');
+    }
+}
+
+// Add click handler for the Make with AI button
+document.addEventListener('DOMContentLoaded', () => {
+    const aiButton = document.createElement('button');
+    aiButton.id = 'make-with-ai';
+    aiButton.textContent = 'Make with AI';
+    aiButton.onclick = showAIGenerator;
+    document.body.appendChild(aiButton);
 }); 

@@ -43,6 +43,10 @@
         <div id="task-form" class="glass-panel">
             <h2>Add New Task</h2>
             <input type="text" id="task-title" placeholder="Task Title" class="neon-input" required>
+            <div id="suggestions" class="suggestions-container hidden">
+                <h4>Suggested Subtasks:</h4>
+                <div id="suggestions-list"></div>
+            </div>
             <textarea id="task-description" placeholder="Description" class="neon-input"></textarea>
             <input type="date" id="task-deadline" class="neon-input" required>
             <label class="neon-checkbox">
@@ -72,6 +76,21 @@
         <h2>Completed Tasks</h2>
         <div id="completed-list"></div>
         <button onclick="toggleCompletedView()" class="neon-button">Close</button>
+    </div>
+
+    <div id="ai-task-generator" class="glass-panel hidden">
+        <div class="ai-content">
+            <h2>AI Task Generator</h2>
+            <textarea id="project-description" placeholder="Describe your project or work..." class="neon-input"></textarea>
+            <div class="ai-buttons">
+                <button onclick="generateAITasks()" class="neon-button">Generate Tasks</button>
+                <button onclick="closeAIGenerator()" class="neon-button">Close</button>
+            </div>
+            <div id="ai-loading" class="hidden">
+                <div class="ai-spinner"></div>
+                <p>Generating tasks...</p>
+            </div>
+        </div>
     </div>
 
     <audio id="ambient-sound" loop>

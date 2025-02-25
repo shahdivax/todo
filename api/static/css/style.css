@@ -535,4 +535,126 @@ body {
 
 #task-list-container::-webkit-scrollbar-thumb:hover {
     background: var(--neon-purple);
+}
+
+/* AI Task Generator styles */
+#ai-task-generator {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    width: 90%;
+    max-width: 600px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 30px var(--neon-blue);
+}
+
+#ai-task-generator h2 {
+    color: var(--neon-blue);
+    text-align: center;
+    margin-bottom: 20px;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 10px var(--neon-blue);
+}
+
+#project-description {
+    width: 100%;
+    height: 150px;
+    margin-bottom: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--neon-blue);
+    color: #fff;
+    padding: 15px;
+    font-size: 16px;
+    resize: none;
+}
+
+.ai-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#ai-loading {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.ai-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--neon-blue);
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Make with AI button styles */
+#make-with-ai {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    padding: 12px 25px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1em;
+    letter-spacing: 1px;
+    background: transparent;
+    border: 2px solid var(--neon-purple);
+    color: var(--neon-purple);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#make-with-ai:hover {
+    background: var(--neon-purple);
+    color: #000;
+    box-shadow: 0 0 20px var(--neon-purple);
+}
+
+.suggestions-container {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid var(--neon-blue);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.suggestions-container h4 {
+    color: var(--neon-blue);
+    margin: 0 0 10px 0;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+    padding: 5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.suggestion-item:hover {
+    border-color: var(--neon-purple);
+    background: rgba(157, 0, 255, 0.1);
+}
+
+.suggestion-item input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.suggestion-item label {
+    color: #fff;
+    cursor: pointer;
 } 

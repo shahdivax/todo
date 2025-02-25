@@ -4,6 +4,11 @@ import json
 import random
 import datetime
 from collections import defaultdict
+from google.generativeai import GenerativeModel
+import google.generativeai as genai
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 app = Flask(__name__, static_folder='static')
 CORS(app)
@@ -11,6 +16,10 @@ CORS(app)
 # In-memory storage
 tasks = []
 task_id_counter = 1
+
+# Initialize Gemini
+genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+model = GenerativeModel('gemini-2.0-flash')
 
 # AI-based priority scoring (simple implementation)
 def calculate_priority(task):
@@ -109,6 +118,37 @@ def suggest_subtasks():
         ]
     
     return jsonify(suggestions)
+
+@app.route('/api/generate-tasks', methods=['POST'])
+def generate_tasks():
+    description = request.json.get('description', '')
+    today = datetime.date.today().strftime('%Y-%m-%d')
+    
+    # Prompt for Gemini
+    prompt = f"""
+    Based on this project/work description: "{description}"
+    Generate a list of 3-5 or more if required tasks in JSON format. Each task should have:
+    - title (string)
+    - description (string)
+    - deadline (YYYY-MM-DD, within next 14 days from {today})
+    - urgent (boolean, based on task nature)
+    
+    Format example:
+    [{{
+        "title": "Task name",
+        "description": "Detailed description",
+        "deadline": "2024-03-20",
+        "urgent": true
+    }}]
+    """
+    
+    try:
+        response = model.generate_content(prompt)
+        print(response.text)
+        tasks = json.loads(response.text.replace("```json", "").replace("```", ""))
+        return jsonify(tasks)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/favicon.ico')
 def favicon():

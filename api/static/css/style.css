@@ -300,14 +300,15 @@ body {
     position: fixed;
     left: -300px;
     top: 0;
-    width: 300px;
+    width: var(--sidebar-width);
     height: 100vh;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
     border-right: 1px solid var(--glass-border);
     z-index: 10;
     transition: all 0.3s ease;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     padding: 20px;
     padding-top: 80px;
 }
@@ -341,14 +342,36 @@ body {
     color: #000;
 }
 
+#sidebar h2 {
+    margin-bottom: 15px;
+}
+
+#task-list-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+}
+
+#task-list-container h3 {
+    color: var(--neon-blue);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1em;
+    padding: 10px 5px;
+    margin: 10px 0 5px 0;
+    border-bottom: 1px solid var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
 .task-list-item {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: 8px;
     padding: 12px;
-    margin-bottom: 10px;
+    margin: 8px 0;
     cursor: pointer;
     transition: all 0.3s ease;
+    max-width: 100%;
 }
 
 .task-list-item:hover {
@@ -386,6 +409,12 @@ body {
 .view-toggle {
     display: flex;
     margin-bottom: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    padding: 2px;
+    position: sticky;
+    top: 80px;
+    z-index: 1;
 }
 
 .view-toggle button {
@@ -396,11 +425,13 @@ body {
     color: #fff;
     cursor: pointer;
     font-size: 0.9em;
+    transition: all 0.3s ease;
 }
 
 .view-toggle button.active {
     background: var(--neon-blue);
     color: #000;
+    box-shadow: 0 0 10px var(--neon-blue);
 }
 
 .view-toggle button:first-child {
@@ -458,4 +489,50 @@ body {
 
 .neon-input:invalid:focus {
     box-shadow: 0 0 15px #ff3366;
+}
+
+/* Add these new styles for date headers and task list container */
+#task-list-container {
+    padding: 5px;
+}
+
+#task-list-container h3 {
+    color: var(--neon-blue);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1em;
+    padding: 10px 5px;
+    margin: 10px 0 5px 0;
+    border-bottom: 1px solid var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* Add smooth transitions for view changes */
+.task-list-item {
+    opacity: 1;
+    transform: translateX(0);
+    transition: all 0.3s ease;
+}
+
+.task-list-item.fade-out {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+/* Update scrollbar styling for task list container */
+#task-list-container::-webkit-scrollbar {
+    width: 5px;
+}
+
+#task-list-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+#task-list-container::-webkit-scrollbar-thumb {
+    background: var(--neon-blue);
+    border-radius: 3px;
+}
+
+#task-list-container::-webkit-scrollbar-thumb:hover {
+    background: var(--neon-purple);
 } 

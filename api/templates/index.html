@@ -6,7 +6,7 @@
     <title>3D Space Todo</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -17,6 +17,17 @@
             <p>For the best experience, please use a desktop or laptop computer with a minimum screen width of 1024 pixels.</p>
             <p>The complex 3D interactions and physics simulations may not perform well on mobile devices.</p>
         </div>
+    </div>
+
+    <div id="sidebar-toggle">☰</div>
+    
+    <div id="sidebar">
+        <h2>Task List</h2>
+        <div class="view-toggle">
+            <button class="active" onclick="toggleTaskView('all')">All</button>
+            <button onclick="toggleTaskView('priority')">By Priority</button>
+        </div>
+        <div id="task-list-container"></div>
     </div>
 
     <div id="scene-container"></div>
@@ -43,6 +54,7 @@
         <div id="controls" class="glass-panel">
             <button onclick="clearTasks()" class="neon-button danger">Clear All Tasks</button>
             <button onclick="toggleAudio()" class="neon-button">Toggle Audio</button>
+            <!-- <button id="drag-toggle" onclick="toggleDragMode()" class="neon-button">Enable Drag Mode</button> -->
         </div>
     </div>
 

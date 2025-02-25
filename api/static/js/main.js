@@ -6,6 +6,8 @@ const ambientSound = document.getElementById('ambient-sound');
 const completeSound = document.getElementById('complete-sound');
 const hoverSound = document.getElementById('hover-sound');
 let completedCount = 0;
+let currentTaskView = 'all';
+let taskCompletionStatus = new Map(); // Track which tasks have been completed
 
 // Audio functions
 function toggleAudio() {
@@ -155,6 +157,9 @@ async function addTask() {
         const taskBody = createTaskBody(taskData);
         taskBodies.set(taskData.id, taskBody);
 
+        // Update sidebar
+        updateTaskList();
+        
         // Clear form
         document.getElementById('task-title').value = '';
         document.getElementById('task-description').value = '';
@@ -211,11 +216,22 @@ function closeDetails() {
 async function completeTask() {
     const detailsPanel = document.getElementById('task-details');
     const taskId = parseInt(detailsPanel.dataset.taskId);
+    
+    // Check if this task has already been completed
+    if (taskCompletionStatus.has(taskId) && taskCompletionStatus.get(taskId)) {
+        // Task already completed, just close the details
+        closeDetails();
+        return;
+    }
+    
     const taskObject = taskObjects.get(taskId);
 
     if (taskObject) {
         // Update the task data
         taskObject.taskData.completed = true;
+        
+        // Mark this task as completed in our tracking map
+        taskCompletionStatus.set(taskId, true);
         
         // Update the colors
         taskObject.material.color.setHex(getTaskColor(taskObject.taskData));
@@ -230,10 +246,14 @@ async function completeTask() {
 
         // Move to completed tasks collection
         completedTasks.set(taskId, taskObject);
+        taskObjects.delete(taskId); // Remove from active tasks
         
         // Update completed count
         completedCount++;
         updateCompletedCount();
+        
+        // Update sidebar
+        updateTaskList();
         
         playCompleteSound();
         closeDetails();
@@ -277,6 +297,9 @@ async function deleteTask(taskId) {
                 taskBodies.delete(taskId);
             }
 
+            // Update sidebar
+            updateTaskList();
+
             closeDetails();
         }
     } catch (error) {
@@ -308,6 +331,12 @@ async function clearTasks() {
             // Reset completed count
             completedCount = 0;
             updateCompletedCount();
+
+            // Clear task completion status tracking
+            taskCompletionStatus.clear();
+
+            // Update sidebar
+            updateTaskList();
         }
     } catch (error) {
         console.error('Error clearing tasks:', error);
@@ -460,5 +489,181 @@ function deleteCompletedTask(taskId) {
 
 // Initialize completed count on load
 window.addEventListener('load', () => {
+    updateCompletedCount();
+});
+
+// Add sidebar toggle function
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    
+    sidebar.classList.toggle('open');
+    
+    // Update toggle button appearance
+    if (sidebar.classList.contains('open')) {
+        sidebarToggle.innerHTML = '×'; // Change to close icon
+        sidebarToggle.style.left = `${300 + 20}px`; // Move button with sidebar
+    } else {
+        sidebarToggle.innerHTML = '☰'; // Change back to menu icon
+        sidebarToggle.style.left = '20px'; // Return to original position
+    }
+}
+
+// Update task list in sidebar
+function updateTaskList() {
+    const container = document.getElementById('task-list-container');
+    container.innerHTML = '';
+    
+    if (currentTaskView === 'all') {
+        // Show all tasks in a single list
+        const allTasks = [];
+        
+        // Add active tasks
+        taskObjects.forEach((object, taskId) => {
+            allTasks.push({
+                id: taskId,
+                data: object.taskData,
+                completed: false
+            });
+        });
+        
+        // Add completed tasks
+        completedTasks.forEach((object, taskId) => {
+            allTasks.push({
+                id: taskId,
+                data: object.taskData,
+                completed: true
+            });
+        });
+        
+        // Sort by priority (highest first) and completion status
+        allTasks.sort((a, b) => {
+            if (a.completed && !b.completed) return 1;
+            if (!a.completed && b.completed) return -1;
+            return (b.data.priority || 1) - (a.data.priority || 1);
+        });
+        
+        // Create list items
+        allTasks.forEach(task => {
+            const item = createTaskListItem(task.id, task.data, task.completed);
+            container.appendChild(item);
+        });
+    } else {
+        // Group by priority
+        const priorityGroups = {
+            'Urgent': [],
+            'High': [],
+            'Medium': [],
+            'Low': [],
+            'Completed': []
+        };
+        
+        // Categorize active tasks
+        taskObjects.forEach((object, taskId) => {
+            const taskData = object.taskData;
+            let category;
+            
+            if (taskData.urgent) {
+                category = 'Urgent';
+            } else if (taskData.priority >= 4) {
+                category = 'High';
+            } else if (taskData.priority >= 2) {
+                category = 'Medium';
+            } else {
+                category = 'Low';
+            }
+            
+            priorityGroups[category].push({
+                id: taskId,
+                data: taskData,
+                completed: false
+            });
+        });
+        
+        // Add completed tasks
+        completedTasks.forEach((object, taskId) => {
+            priorityGroups['Completed'].push({
+                id: taskId,
+                data: object.taskData,
+                completed: true
+            });
+        });
+        
+        // Create sections for each priority group
+        for (const [category, tasks] of Object.entries(priorityGroups)) {
+            if (tasks.length > 0) {
+                const heading = document.createElement('h3');
+                heading.textContent = category;
+                container.appendChild(heading);
+                
+                tasks.forEach(task => {
+                    const item = createTaskListItem(task.id, task.data, task.completed);
+                    container.appendChild(item);
+                });
+            }
+        }
+    }
+}
+
+// Create a task list item
+function createTaskListItem(taskId, taskData, isCompleted) {
+    const item = document.createElement('div');
+    item.className = 'task-list-item';
+    item.dataset.taskId = taskId;
+    
+    // Determine priority class
+    let priorityClass = isCompleted ? 'completed' : 
+                        taskData.urgent ? 'urgent' : 
+                        `priority-${taskData.priority || 1}`;
+    
+    item.innerHTML = `
+        <div class="priority-indicator ${priorityClass}"></div>
+        <h4>${taskData.title}</h4>
+        <p>${taskData.description || 'No description'}</p>
+        ${taskData.deadline ? `<p>Deadline: ${taskData.deadline}</p>` : ''}
+    `;
+    
+    // Add click event to show task details
+    item.addEventListener('click', () => {
+        showTaskDetails(taskData);
+    });
+    
+    return item;
+}
+
+// Toggle between task views
+function toggleTaskView(view) {
+    currentTaskView = view;
+    
+    // Update active button
+    const buttons = document.querySelectorAll('.view-toggle button');
+    buttons.forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    const activeButton = Array.from(buttons).find(button => 
+        button.textContent.toLowerCase().includes(view)
+    );
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
+    
+    updateTaskList();
+}
+
+// Update the sidebar toggle event listener
+window.addEventListener('load', () => {
+    // Initialize sidebar toggle
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
+    
+    // Load tasks and update sidebar
+    loadTasks().then(() => {
+        updateTaskList();
+    });
+    
+    // Initialize completed count
     updateCompletedCount();
 }); 

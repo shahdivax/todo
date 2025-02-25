@@ -395,6 +395,7 @@ body {
     border: 1px solid var(--glass-border);
     color: #fff;
     cursor: pointer;
+    font-size: 0.9em;
 }
 
 .view-toggle button.active {
@@ -403,11 +404,20 @@ body {
 }
 
 .view-toggle button:first-child {
-    border-radius: 5px 0 0 5px;
+    border-radius: 5px 0 0 0;
+    border-bottom: none;
+}
+
+.view-toggle button:nth-child(2) {
+    border-radius: 0;
+    border-left: none;
+    border-bottom: none;
 }
 
 .view-toggle button:last-child {
-    border-radius: 0 5px 5px 0;
+    border-radius: 0 5px 0 0;
+    border-left: none;
+    border-bottom: none;
 }
 
 /* Improve readability for task details */
@@ -431,4 +441,21 @@ body {
 #task-description {
     min-height: 80px;
     line-height: 1.4;
+}
+
+/* Add styles for required fields */
+.neon-input:required {
+    border-color: var(--neon-purple);
+}
+
+.neon-input:required:focus {
+    box-shadow: 0 0 15px var(--neon-purple);
+}
+
+.neon-input:invalid {
+    border-color: #ff3366;
+}
+
+.neon-input:invalid:focus {
+    box-shadow: 0 0 15px #ff3366;
 } 

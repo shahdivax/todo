@@ -120,8 +120,15 @@ async function addTask() {
     const deadline = document.getElementById('task-deadline').value;
     const urgent = document.getElementById('task-urgent').checked;
 
-    if (!title) {
-        alert('Please enter a task title');
+    // Add validation for both title and deadline
+    if (!title || !deadline) {
+        if (!title && !deadline) {
+            alert('Please enter a task title and select a deadline');
+        } else if (!title) {
+            alert('Please enter a task title');
+        } else {
+            alert('Please select a deadline');
+        }
         return;
     }
 
@@ -150,8 +157,8 @@ async function addTask() {
         
         // Create 3D object
         const taskObject = createTaskObject(taskData);
-        scene.add(taskObject); // Add to scene
-        taskObjects.set(taskData.id, taskObject); // Add to taskObjects map
+        scene.add(taskObject);
+        taskObjects.set(taskData.id, taskObject);
         
         // Create physics body
         const taskBody = createTaskBody(taskData);
@@ -160,11 +167,11 @@ async function addTask() {
         // Update sidebar
         updateTaskList();
         
-        // Clear form
+        // Clear form and reset date
         document.getElementById('task-title').value = '';
         document.getElementById('task-description').value = '';
-        document.getElementById('task-deadline').value = '';
         document.getElementById('task-urgent').checked = false;
+        setDefaultDate();
     } catch (error) {
         console.error('Error creating task:', error);
     }
@@ -492,116 +499,138 @@ window.addEventListener('load', () => {
     updateCompletedCount();
 });
 
-// Add sidebar toggle function
+// Move the sidebar toggle function to the top level and update it
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebar-toggle');
     
-    sidebar.classList.toggle('open');
-    
-    // Update toggle button appearance
     if (sidebar.classList.contains('open')) {
-        sidebarToggle.innerHTML = '×'; // Change to close icon
-        sidebarToggle.style.left = `${300 + 20}px`; // Move button with sidebar
+        sidebar.classList.remove('open');
+        sidebarToggle.innerHTML = '☰';
+        sidebarToggle.style.left = '20px';
     } else {
-        sidebarToggle.innerHTML = '☰'; // Change back to menu icon
-        sidebarToggle.style.left = '20px'; // Return to original position
+        sidebar.classList.add('open');
+        sidebarToggle.innerHTML = '×';
+        sidebarToggle.style.left = `${300 + 20}px`;
     }
 }
+
+// Add event listener for sidebar toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    sidebarToggle.addEventListener('click', toggleSidebar);
+});
 
 // Update task list in sidebar
 function updateTaskList() {
     const container = document.getElementById('task-list-container');
     container.innerHTML = '';
     
-    if (currentTaskView === 'all') {
-        // Show all tasks in a single list
-        const allTasks = [];
-        
-        // Add active tasks
-        taskObjects.forEach((object, taskId) => {
-            allTasks.push({
-                id: taskId,
-                data: object.taskData,
-                completed: false
+    let tasks = [];
+    
+    // Collect all tasks
+    taskObjects.forEach((object, taskId) => {
+        tasks.push({
+            id: taskId,
+            data: object.taskData,
+            completed: false
+        });
+    });
+    
+    completedTasks.forEach((object, taskId) => {
+        tasks.push({
+            id: taskId,
+            data: object.taskData,
+            completed: true
+        });
+    });
+
+    switch (currentTaskView) {
+        case 'date':
+            // Sort by date (closest deadline first)
+            tasks.sort((a, b) => {
+                // Put tasks without deadlines at the end
+                if (!a.data.deadline) return 1;
+                if (!b.data.deadline) return -1;
+                return new Date(a.data.deadline) - new Date(b.data.deadline);
             });
-        });
-        
-        // Add completed tasks
-        completedTasks.forEach((object, taskId) => {
-            allTasks.push({
-                id: taskId,
-                data: object.taskData,
-                completed: true
-            });
-        });
-        
-        // Sort by priority (highest first) and completion status
-        allTasks.sort((a, b) => {
-            if (a.completed && !b.completed) return 1;
-            if (!a.completed && b.completed) return -1;
-            return (b.data.priority || 1) - (a.data.priority || 1);
-        });
-        
-        // Create list items
-        allTasks.forEach(task => {
-            const item = createTaskListItem(task.id, task.data, task.completed);
-            container.appendChild(item);
-        });
-    } else {
-        // Group by priority
-        const priorityGroups = {
-            'Urgent': [],
-            'High': [],
-            'Medium': [],
-            'Low': [],
-            'Completed': []
-        };
-        
-        // Categorize active tasks
-        taskObjects.forEach((object, taskId) => {
-            const taskData = object.taskData;
-            let category;
             
-            if (taskData.urgent) {
-                category = 'Urgent';
-            } else if (taskData.priority >= 4) {
-                category = 'High';
-            } else if (taskData.priority >= 2) {
-                category = 'Medium';
-            } else {
-                category = 'Low';
-            }
+            // Group by date
+            const dateGroups = {};
+            tasks.forEach(task => {
+                const date = task.data.deadline ? 
+                    new Date(task.data.deadline).toLocaleDateString() : 
+                    'No Deadline';
+                if (!dateGroups[date]) {
+                    dateGroups[date] = [];
+                }
+                dateGroups[date].push(task);
+            });
             
-            priorityGroups[category].push({
-                id: taskId,
-                data: taskData,
-                completed: false
-            });
-        });
-        
-        // Add completed tasks
-        completedTasks.forEach((object, taskId) => {
-            priorityGroups['Completed'].push({
-                id: taskId,
-                data: object.taskData,
-                completed: true
-            });
-        });
-        
-        // Create sections for each priority group
-        for (const [category, tasks] of Object.entries(priorityGroups)) {
-            if (tasks.length > 0) {
+            // Create sections for each date
+            for (const [date, dateTasks] of Object.entries(dateGroups)) {
                 const heading = document.createElement('h3');
-                heading.textContent = category;
+                heading.textContent = date;
                 container.appendChild(heading);
                 
-                tasks.forEach(task => {
+                dateTasks.forEach(task => {
                     const item = createTaskListItem(task.id, task.data, task.completed);
                     container.appendChild(item);
                 });
             }
-        }
+            break;
+
+        case 'priority':
+            // Group by priority
+            const priorityGroups = {
+                'Urgent': [],
+                'High': [],
+                'Medium': [],
+                'Low': [],
+                'Completed': []
+            };
+            
+            tasks.forEach(task => {
+                if (task.completed) {
+                    priorityGroups['Completed'].push(task);
+                } else if (task.data.urgent) {
+                    priorityGroups['Urgent'].push(task);
+                } else if (task.data.priority >= 4) {
+                    priorityGroups['High'].push(task);
+                } else if (task.data.priority >= 2) {
+                    priorityGroups['Medium'].push(task);
+                } else {
+                    priorityGroups['Low'].push(task);
+                }
+            });
+            
+            for (const [priority, priorityTasks] of Object.entries(priorityGroups)) {
+                if (priorityTasks.length > 0) {
+                    const heading = document.createElement('h3');
+                    heading.textContent = priority;
+                    container.appendChild(heading);
+                    
+                    priorityTasks.forEach(task => {
+                        const item = createTaskListItem(task.id, task.data, task.completed);
+                        container.appendChild(item);
+                    });
+                }
+            }
+            break;
+
+        default: // 'all'
+            // Sort by completion status and then by priority
+            tasks.sort((a, b) => {
+                if (a.completed && !b.completed) return 1;
+                if (!a.completed && b.completed) return -1;
+                return (b.data.priority || 1) - (a.data.priority || 1);
+            });
+            
+            tasks.forEach(task => {
+                const item = createTaskListItem(task.id, task.data, task.completed);
+                container.appendChild(item);
+            });
+            break;
     }
 }
 
@@ -651,19 +680,25 @@ function toggleTaskView(view) {
     updateTaskList();
 }
 
-// Update the sidebar toggle event listener
+// Set today's date as default for task deadline
+function setDefaultDate() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
+    document.getElementById('task-deadline').value = formattedDate;
+}
+
+// Update the window load event listener to include setDefaultDate
 window.addEventListener('load', () => {
-    // Initialize sidebar toggle
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', toggleSidebar);
-    }
-    
-    // Load tasks and update sidebar
+    // Existing load event handlers
+    initMatter();
     loadTasks().then(() => {
         updateTaskList();
     });
-    
-    // Initialize completed count
     updateCompletedCount();
+    
+    // Add the new function call
+    setDefaultDate();
 }); 

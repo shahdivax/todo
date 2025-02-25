@@ -25,6 +25,7 @@
         <h2>Task List</h2>
         <div class="view-toggle">
             <button class="active" onclick="toggleTaskView('all')">All</button>
+            <button onclick="toggleTaskView('date')">By Date</button>
             <button onclick="toggleTaskView('priority')">By Priority</button>
         </div>
         <div id="task-list-container"></div>
@@ -41,9 +42,9 @@
         
         <div id="task-form" class="glass-panel">
             <h2>Add New Task</h2>
-            <input type="text" id="task-title" placeholder="Task Title" class="neon-input">
+            <input type="text" id="task-title" placeholder="Task Title" class="neon-input" required>
             <textarea id="task-description" placeholder="Description" class="neon-input"></textarea>
-            <input type="date" id="task-deadline" class="neon-input">
+            <input type="date" id="task-deadline" class="neon-input" required>
             <label class="neon-checkbox">
                 <input type="checkbox" id="task-urgent">
                 Urgent

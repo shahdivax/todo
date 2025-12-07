@@ -19,7 +19,7 @@ task_id_counter = 1
 
 # Initialize Gemini
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-model = GenerativeModel(os.getenv('GEMINI_MODEL'),"gemini-2.5-flash")
+model = GenerativeModel(os.getenv('GEMINI_MODEL',"gemini-2.5-flash"))
 
 # AI-based priority scoring (simple implementation)
 def calculate_priority(task):
